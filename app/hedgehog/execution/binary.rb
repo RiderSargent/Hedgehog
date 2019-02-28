@@ -24,6 +24,11 @@ module Hedgehog
           #
           enforce_color = "script -q -t 0 /dev/null "
 
+          input = Hedgehog::Settings
+            .shared_instance
+            .input_source
+            &.reader || STDIN
+
           to_execute = set_previous_status +
             shared_variables +
             enforce_color +
@@ -31,7 +36,7 @@ module Hedgehog
 
           output = ""
           io_r, io_w = IO.pipe
-          pid = Process.spawn(to_execute, out: io_w, err: [:child, :out])
+          pid = Process.spawn(to_execute, in: input, out: io_w, err: [:child, :out])
           io_w.close
           while c = io_r.getc
             print c
